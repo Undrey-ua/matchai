@@ -1,0 +1,57 @@
+# Python (Backend)
+__pycache__/
+*.py[cod]
+*.so
+.Python
+env/
+venv/
+.env
+*.log
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node.js (Frontend)
+node_modules/
+dist/
+build/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Database
+*.sqlite3
+*.db
+
+# Nginx
+nginx/ssl/*.key
+nginx/ssl/*.crt
+nginx/ssl/*.pem
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Redis
+*.rdb
+dump.rdb
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+.tmp/
