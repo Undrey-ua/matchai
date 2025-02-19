@@ -6,24 +6,42 @@ from app.services.chat import handle_chat_connection
 from app.core.middleware import LoggingMiddleware, ErrorHandlingMiddleware
 from app.api.endpoints import users, posts, likes, matches
 
+description = """
+# MatchAI API
+
+API для системи знаходження схожих користувачів на основі їхніх інтересів.
+
+## Функціональність
+
+### Користувачі
+* 👤 Реєстрація нових користувачів
+* 📋 Отримання списку користувачів
+* ✅ Валідація email на унікальність
+
+### Пости
+* 📝 Створення постів
+* 📚 Отримання постів користувача
+
+### Лайки
+* ❤️ Додавання лайків
+* 👍 Отримання лайків користувача
+
+### Матчі
+* 🤝 Пошук схожих користувачів
+* 📊 Розрахунок схожості інтересів
+"""
+
 app = FastAPI(
     title="MatchAI API",
-    description="""
-    MatchAI API - система для знаходження схожих користувачів на основі їхніх інтересів.
-    
-    ## Користувачі
-    * Створення нового користувача
-    * Отримання списку користувачів
-    * Перевірка на дублікати email
-    
-    ## Функціональність
-    * Реєстрація користувачів з інтересами
-    * Автоматичне створення векторів інтересів
-    * Пошук схожих користувачів
-    """,
+    description=description,
     version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    contact={
+        "name": "MatchAI Team",
+        "url": "https://github.com/undrey-ua/matchai",
+    },
+    license_info={
+        "name": "MIT",
+    }
 )
 
 # Middleware
@@ -45,16 +63,41 @@ app.websocket("/ws/{user_id}")(handle_chat_connection)
 
 # Роутери
 # app.include_router(auth.router, prefix="/auth", tags=["auth"])
-app.include_router(users.router, prefix="/api/users", tags=["users"])
-app.include_router(posts.router, prefix="/api/posts", tags=["posts"])
-app.include_router(likes.router, prefix="/api/likes", tags=["likes"])
-app.include_router(matches.router, prefix="/api/matches", tags=["matches"])
+app.include_router(
+    users.router,
+    prefix="/api/users",
+    tags=["Users"],
+    responses={404: {"description": "Not found"}},
+)
+app.include_router(
+    posts.router,
+    prefix="/api/posts",
+    tags=["Posts"],
+    responses={404: {"description": "Not found"}},
+)
+app.include_router(
+    likes.router,
+    prefix="/api/likes",
+    tags=["Likes"],
+    responses={404: {"description": "Not found"}},
+)
+app.include_router(
+    matches.router,
+    prefix="/api/matches",
+    tags=["Matches"],
+    responses={404: {"description": "Not found"}},
+)
 
-@app.get("/")
+@app.get("/", tags=["Root"])
 def read_root():
+    """
+    Отримати базову інформацію про API.
+    """
     return {
-        "app": "MatchAI API",
+        "name": "MatchAI API",
         "version": "1.0.0",
-        "docs": "/docs",
-        "redoc": "/redoc"
+        "documentation": {
+            "swagger": "/docs",
+            "redoc": "/redoc"
+        }
     } 
