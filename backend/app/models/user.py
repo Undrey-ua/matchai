@@ -1,32 +1,61 @@
-from datetime import datetime
-from sqlalchemy import Column, Integer, String, Date, DateTime, JSON, Boolean
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, ARRAY, Float, ForeignKey
 from sqlalchemy.orm import relationship
-from app.core.database import Base
-from app.core.security import verify_password
+from datetime import datetime
+
+from app.db.base_class import Base
 
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
     email = Column(String, unique=True, index=True)
-    name = Column(String)
+    full_name = Column(String)
     hashed_password = Column(String)
-    birth_date = Column(Date)
-    gender = Column(String)
-    bio = Column(String, nullable=True)
+    interests = Column(ARRAY(String), default=[])
+    age = Column(Integer, nullable=True)
     location = Column(String, nullable=True)
-    profile_photo = Column(String, nullable=True)
-    interests = Column(JSON, nullable=True)
-    preferences = Column(JSON, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    social_links = Column(ARRAY(String), default=[])
     is_active = Column(Boolean, default=True)
-    social_accounts = Column(JSON)  # Зберігаємо токени доступу
-    profile_data = Column(JSON)     # Зберігаємо дані профілю
+    interest_vector = Column(ARRAY(Float), default=[])
+    last_update = Column(DateTime, default=datetime.utcnow)
 
     # Relationships
-    sent_messages = relationship("app.models.message.Message", foreign_keys="app.models.message.Message.sender_id", back_populates="sender")
-    received_messages = relationship("app.models.message.Message", foreign_keys="app.models.message.Message.receiver_id", back_populates="receiver")
+    posts = relationship("Post", back_populates="user")
+    likes = relationship("Like", back_populates="user")
+    matches_as_user = relationship("Match", foreign_keys="Match.user_id", back_populates="user")
+    matches_as_matched = relationship("Match", foreign_keys="Match.matched_user_id", back_populates="matched_user")
 
-    def verify_password(self, password: str) -> bool:
-        return verify_password(password, self.hashed_password) 
+class Post(Base):
+    __tablename__ = "posts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    content = Column(String)
+    source = Column(String)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="posts")
+    likes = relationship("Like", back_populates="post")
+
+class Like(Base):
+    __tablename__ = "likes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    post_id = Column(Integer, ForeignKey("posts.id"))
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", back_populates="likes")
+    post = relationship("Post", back_populates="likes")
+
+class Match(Base):
+    __tablename__ = "matches"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    matched_user_id = Column(Integer, ForeignKey("users.id"))
+    similarity_score = Column(Float)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User", foreign_keys=[user_id], back_populates="matches_as_user")
+    matched_user = relationship("User", foreign_keys=[matched_user_id], back_populates="matches_as_matched")

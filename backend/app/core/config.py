@@ -12,17 +12,22 @@ class Settings(BaseSettings):
     PORT: int = 8000
     
     # Database
-    DATABASE_URL: str = "sqlite:///./app.db"
+    DATABASE_URL: str = "postgresql://andrii:cd7131fy@localhost/matchai"
     TEST_DATABASE_URL: str = "sqlite:///./test.db"
     
     # JWT
-    SECRET_KEY: str = "your-secret-key"
+    SECRET_KEY: str = "cd7131fy-keep-it-secret"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     
     # API
     API_V1_STR: str = "/api/v1"
     PROJECT_NAME: str = "MatchAI"
+
+    FACEBOOK_CLIENT_ID: str
+    FACEBOOK_CLIENT_SECRET: str
+    TWITTER_CLIENT_ID: str
+    TWITTER_CLIENT_SECRET: str
 
     model_config = ConfigDict(
         env_file=".env",
