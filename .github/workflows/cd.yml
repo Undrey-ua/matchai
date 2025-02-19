@@ -1,0 +1,34 @@
+name: CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.12'
+    
+    - name: Install dependencies
+      run: |
+        cd backend
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    # Наразі просто перевіряємо, що все збирається
+    - name: Build check
+      run: |
+        cd backend
+        python -m compileall .
+    
+    # Тут пізніше можна додати кроки для деплою
+    - name: Deploy placeholder
+      run: |
+        echo "Deployment steps will be added later"
