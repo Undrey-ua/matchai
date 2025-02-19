@@ -16,19 +16,20 @@ jobs:
       with:
         python-version: '3.12'
     
+    - name: List directory contents
+      run: |
+        pwd
+        ls -la
+    
     - name: Install dependencies
       run: |
-        cd backend
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+        pip install --upgrade pip
+        pip install fastapi uvicorn sqlalchemy pydantic alembic psycopg2-binary python-jose[cryptography] passlib[bcrypt] python-multipart pytest requests
     
-    # Наразі просто перевіряємо, що все збирається
     - name: Build check
       run: |
-        cd backend
         python -m compileall .
     
-    # Тут пізніше можна додати кроки для деплою
     - name: Deploy placeholder
       run: |
         echo "Deployment steps will be added later"
