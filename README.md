@@ -5,28 +5,69 @@ Dating service that uses AI to help users find better matches.
 ## Architecture
 
 ```plaintext
-                     ┌─────────────┐
-                     │   Client    │
-                     └──────┬──────┘
+                        ┌─────────────────────┐
+                        │    Користувач       │
+                        │ Пости│Лайки│Інтереси│
+                        └──────────┬──────────┘
+                                   │
+                                   ▼
+┌──────────────────────────────────────────────────────────┐
+│                     AI Аналіз                            │
+│                                                          │
+│    ┌───────────┐         ┌──────────┐      ┌──────────┐  │
+│    │   GPT     │         │ Sentence │      │ Behavior │  │
+│    │  Аналіз   │         │ Vectors  │      │ Аналіз   │  │
+│    │  тексту   │         │ (384-dim)│      │ патернів │  │
+│    └─────┬─────┘         └────┬─────┘      └────┬─────┘  │
+│          │                    │                 │        │
+└──────────┼────────────────────┼─────────────────┼────────┘
+           │                    │                 │
+           ▼                    ▼                 ▼
+    ┌─────────────────────────────────────────────────┐
+    │              База даних (PostgreSQL)            │
+    │        Зберігання векторів та результатів       │
+    └───────────────────────┬─────────────────────────┘
                             │
-                     ┌──────┴──────┐
-                     │    Nginx    │
-                     └──────┬──────┘
-                            │
-       ┌────────────────────┴────────────────────┐
-       │                                         │
-┌──────┴──────┐                           ┌──────┴──────┐
-│   Frontend  │                           │   Backend   │
-└──────┬──────┘                           └──────┬──────┘
-       │                                         │
-       │                                  ┌──────┴──────┐
-       │                                  │  Database   │
-       │                                  └─────────────┘
-       │                                         │
-┌──────┴──────┐                           ┌──────┴──────┐
-│    Redis    │                           │  AI Service │
-└─────────────┘                           └─────────────┘
+                            ▼
+                ┌────────────────────┐
+                │  Matching Engine   │
+                │ Пошук схожих людей │
+                └────────┬───────────┘
+                         │
+                         ▼
+                ┌────────────────────┐
+                │  Список матчів     │
+                │  за схожістю       │
+                └────────────────────┘
 ```
+
+## System Components
+
+### 1. AI Analysis
+- **GPT Text Analysis**
+  - Post and comment analysis
+  - Key topic extraction
+  - Sentiment analysis
+  
+- **Sentence Vectors**
+  - Vector representations (384 dimensions)
+  - Model: all-MiniLM-L6-v2
+  - Interest and content vectorization
+  
+- **Behavior Analysis**
+  - Activity pattern analysis
+  - User interaction study
+  - Behavioral profile creation
+
+### 2. Database
+- PostgreSQL for data storage
+- Vector storage for fast search
+- Analysis results caching
+
+### 3. Matching Engine
+- Cosine similarity for vectors
+- Weighted scoring of all factors
+- Result ranking
 
 ## Tech Stack
 
@@ -36,6 +77,19 @@ Dating service that uses AI to help users find better matches.
 - **Cache**: Redis
 - **Server**: Nginx
 - **Containerization**: Docker
+
+### Backend (FastAPI)
+- Python 3.12
+- FastAPI framework
+- SQLAlchemy ORM
+- Alembic migrations
+- OpenAI GPT API
+- sentence-transformers
+
+### Database
+- PostgreSQL
+- Vector extensions
+- Fast search indexing
 
 ## Prerequisites
 
@@ -53,25 +107,35 @@ git clone https://github.com/Undrey-ua/matchai.git
 cd matchai
 ```
 
-
-2. Set up environment variables:
-
+2. Create virtual environment:
 ```bash
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# or
+.\venv\Scripts\activate  # Windows
 ```
 
-3. Start the services:
-
+3. Install dependencies:
 ```bash
-docker-compose up
+cd backend
+pip install -r requirements.txt
 ```
 
+4. Setup database:
+```bash
+createdb matchai
+alembic upgrade head
+```
 
-4. Access the application:
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- API Documentation: http://localhost:8000/docs
+5. Run server:
+```bash
+uvicorn app.main:app --reload --port 8001
+```
+
+## API Documentation
+
+- Swagger UI: http://localhost:8001/docs
+- ReDoc: http://localhost:8001/redoc
 
 ## Development
 
@@ -127,3 +191,56 @@ npm test
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## AI Agents
+
+```plaintext
+                                 ┌──────────────────────────┐
+                                 │         USER             │
+                                 │    Input & Interaction   │
+                     ┌──────────►│                          │◄──────────┐
+                     │           └────────────┬─────────────┘           │
+                     │                        │                         │
+                     │                        ▼                         │
+                     │           ┌────────────────────────┐             │
+                     │           │     DATA COLLECTION    │             │
+                     │           │ ┌──────┐┌─────┐┌─────┐ │             │
+                     │           │ │Posts ││Likes││Inter│ │             │
+                     │           │ └──┬───┘└──┬──┘└──┬──┘ │             │
+                     │           └─────┼───────┼─────┼────┘             │
+                     │                 │       │     │                  │
+                     │                 ▼       ▼     ▼                  │
+┌────────────────────┴─────────────────────────────────────────────┐    │
+│                           AI ANALYSIS                            │    │
+│  ┌─────────────────┐   ┌─────────────────┐   ┌─────────────────┐ │    │
+│  │   Text Agent    │   │  Vector Agent   │   │ Behavior Agent  │ │    │
+│  │  [GPT-3.5/4]    │   │   [MiniLM-L6]   │   │  [Custom ML]    │ │    │
+│  │• Content→Topics │   │• Text→Vectors   │   │• Actions→Pattern│ │    │
+│  │• Emotion Detect │   │• 384-dim Space  │   │• Time Analysis  │ │    │
+│  │• Theme Extract  │   │• Similarity Calc│   │• User Profiling │ │    │
+│  └────────┬────────┘   └────────┬────────┘   └────────┬────────┘ │    │
+│           │                     │                     │          │    │
+└───────────┼─────────────────────┼─────────────────────┼──────────┘    │
+            │                     │                     │               │
+            ▼                     ▼                     ▼               │
+    ┌───────────────────────────────────────────────────────────┐       │
+    │                  PostgreSQL DATABASE                      │       │
+    │    [pgvector extension for vector similarity search]      │       │
+    └───────────────────────────┬───────────────────────────────┘       │
+                                │                                       │
+                                ▼                                       │
+                    ┌─────────────────────────┐                         │
+                    │    MATCHING ENGINE      │                         │
+                    │     [Hybrid Model]      │                         │
+                    │• Cosine Similarity      │                         │
+                    │• Weight Optimization    │                         │
+                    │• ML-based Ranking       │                         │
+                    └────────────┬────────────┘                         │
+                                 │                                      │
+                                 ▼                                      │
+                    ┌─────────────────────────┐                         │
+                    │    FINAL RESULTS        ├─────────────────────────┘
+                    │  [Recommendation API]   │
+                    │  Personalized Matches   │
+                    └─────────────────────────┘
+```
